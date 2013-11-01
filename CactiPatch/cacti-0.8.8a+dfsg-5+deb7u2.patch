@@ -1,0 +1,106 @@
+diff -urB site.old/include/main.css site.new/include/main.css
+--- site.old/include/main.css	2012-04-04 03:49:40.000000000 +0200
++++ site.new/include/main.css	2013-11-01 17:53:03.000000000 +0100
+@@ -11,6 +11,12 @@
+ 	background-repeat: repeat-y;
+ }
+ 
++body.export {
++	background-image: -moz-linear-gradient(bottom, #0A2033 0%, #1C4B6B 100%);
++        background-repeat:no-repeat;
++        background-attachment:fixed;
++}
++
+ /* links */
+ 
+ a, a:active, a:visited {
+diff -urB site.old/lib/graph_export.php site.new/lib/graph_export.php
+--- site.old/lib/graph_export.php	2013-08-28 21:16:48.000000000 +0200
++++ site.new/lib/graph_export.php	2013-11-01 17:55:20.000000000 +0100
+@@ -171,7 +171,7 @@
+ 		export_fatal("FTP Hostname is not expected to be blank!");
+ 	}
+ 
+-	$aFtpExport['remotedir'] = read_config_option('path_html_export');
++	$aFtpExport['remotedir'] = read_config_option('path_html_export',TRUE);
+ 	if (empty($aFtpExport['remotedir'])) {
+ 		export_fatal("FTP Remote export path is not expected to be blank!");
+ 	}
+@@ -1818,38 +1818,8 @@
+ 	<script type=\"text/javascript\" src=\"./js/jquery.cookie.js\" language=\"javascript\"></script>
+ 	<script type=\"text/javascript\" src=\"./js/jquery.jstree.js\" language=\"javascript\"></script>
+ </head>
+-<body>
++<body class='export'>
+ <table style='width:100%;height:100%;' cellspacing='0' cellpadding='0'>
+-	<tr style='height:37px;' bgcolor='#a9a9a9'>
+-		<td colspan='2' valign='bottom' nowrap>
+-			<table width='100%' cellspacing='0' cellpadding='0'>
+-				<tr>
+-					<td nowrap>
+-						&nbsp;<a href='http://www.cacti.net/'><img src='tab_cacti.gif' alt='Cacti - http://www.cacti.net/' align='middle' border='0'></a>
+-					</td>
+-					<td align='right'>
+-						<img src='cacti_backdrop.gif' align='middle'>
+-					</td>
+-				</tr>
+-			</table>
+-		</td>
+-	</tr>
+-	<tr style='height:2px;' colspan='2' bgcolor='#183c8f'>
+-		<td colspan='2'>
+-			<img src='transparent_line.gif' style='width:170px;height:2px;' border='0'><br>
+-		</td>
+-	</tr>
+-	<tr style='height:5px;' bgcolor='#e9e9e9'>
+-		<td colspan='2'>
+-			<table width='100%'>
+-				<tr>
+-					<td>
+-						Exported Graphs
+-					</td>
+-				</tr>
+-			</table>
+-		</td>
+-	</tr>
+ 	<tr>
+ 		<td bgcolor='#efefef' colspan='1' style='height:8px;background-image: url(shadow_gray.gif); background-repeat: repeat-x; border-right: #aaaaaa 1px solid;'>
+ 			<img src='transparent_line.gif' width='200' style='height:2px;' border='0'><br>
+diff -urB site.old/lib/rrd.php site.new/lib/rrd.php
+--- site.old/lib/rrd.php	2013-08-28 21:16:48.000000000 +0200
++++ site.new/lib/rrd.php	2013-11-01 17:53:34.000000000 +0100
+@@ -782,6 +782,8 @@
+ 		$graph_end = $graph_data_array["graph_end"];
+ 	}
+ 
++	$graph_duration=$graph_end-$graph_start;
++
+ 	/* override: graph height (in pixels) */
+ 	if (isset($graph_data_array["graph_height"])) {
+ 		$graph_height = $graph_data_array["graph_height"];
+@@ -1266,11 +1268,24 @@
+ 			$cdef_string = str_replace("CURRENT_GRAPH_MINIMUM_VALUE", (empty($graph["lower_limit"]) ? "0" : $graph["lower_limit"]), $cdef_string);
+ 			$cdef_string = str_replace("CURRENT_GRAPH_MAXIMUM_VALUE", (empty($graph["upper_limit"]) ? "0" : $graph["upper_limit"]), $cdef_string);
+ 
++                        if(preg_match_all("/CURRENT_GRAPH_DURATION\(([0-9]+)\)/", $cdef_string, $matches, PREG_PATTERN_ORDER)) {
++                                foreach($matches[1] as $subDuration) {
++                                        $cdef_string = str_replace("CURRENT_GRAPH_DURATION($subDuration)", $graph_duration/$subDuration, $cdef_string);
++                                }
++                        }
++
+ 			/* replace query variables in cdefs */
+ 			$cdef_string = rrd_substitute_host_query_data($cdef_string, $graph, $graph_item);
+ 
+ 			/* make the initial "virtual" cdef name: 'cdef' + [a,b,c,d...] */
+-			$cdef_graph_defs .= "CDEF:cdef" . generate_graph_def_name(strval($i)) . "=";
++			$newGraphDefName=generate_graph_def_name(strval($i));
++
++			if(preg_match("/,(\d+),TREND(NAN)?$/",$cdef_string,$matches)) {
++				$txt_graph_items .= "SHIFT:cdef" . $newGraphDefName.":-" . intval($matches[1]/2) . RRD_NL;
++			}
++
++			$cdef_graph_defs .= "CDEF:cdef" . $newGraphDefName . "=";
++
+ 			/* prohibit command injection and provide platform specific quoting */
+ 			$cdef_graph_defs .= cacti_escapeshellarg(sanitize_cdef($cdef_string), true);
+ 			$cdef_graph_defs .= " \\\n";

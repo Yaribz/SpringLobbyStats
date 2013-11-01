@@ -1,0 +1,25 @@
+[dumpstatus]
+!dumpstatus <user> - print human readable user status
+
+[help]
+!help [<command>] - lists allowed bot commands (print examples for command <command> if <command> is specified)
+"!help" lists allowed commands
+"!help help" print examples for command help
+
+[helpall]
+!helpall - lists all commands
+
+[monitor]
+!monitor online|endgame|active <user> - monitors user's status and notify you with a private message when it changes
+"!monitor online bibim" will notify you when bibim is back online
+"!monitor endgame bibim" will notify you when bibim ends his game
+"!monitor active bibim" will notify you when bibim is back from idle status
+
+[quit]
+!quit - forces bot to quit
+
+[restart]
+!restart - restarts bot
+
+[version]
+!version - requests versions of all bot components
