@@ -33,6 +33,8 @@ use SpringLobbyInterface;
 
 my $statServVer='0.3';
 
+my $win=$^O eq 'MSWin32' ? 1 : 0;
+
 my %botCommandHandlers = (
                           dumpstatus => \&hDumpStatus,
                           help => \&hHelp,
