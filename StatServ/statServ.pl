@@ -1068,7 +1068,7 @@ sub hMonitor {
     }else{
       answer("$p_params->[1] is not online, unable to set notification");
     }
-  }elsif($p_params->[0] eq 'list' && $user eq 'bibim') {
+  }elsif($p_params->[0] eq 'list' && getUserAccessLevel($user) >= 10) {
     if($p_params->[1] ne 'endgame' && $p_params->[1] ne 'active') {
       sayPrivate($user,"===== Online notifications =====");
       foreach my $monitoredUser (sort keys %onlineMonitor) {
