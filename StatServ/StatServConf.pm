@@ -24,7 +24,7 @@ use SimpleLog;
 
 # Internal data ###############################################################
 
-my $moduleVersion='0.1';
+my $moduleVersion='0.2';
 
 my %globalParameters = (lobbyLogin => ["login"],
                         lobbyPassword => ["password"],
@@ -74,7 +74,7 @@ my %paramTypes = (login => '[\w_\[\]]{2,20}',
                   float => '\d+(\.\d*)?',
                   balanceModeType => "(clan|rank|score)(;(clan|rank|score))*");
 
-my @usersFields=(["name","country","cpu","rank","access","bot"],["level"]);
+my @usersFields=(["name","country","rank","access","bot"],["level"]);
 my @levelsFields=(["level"],["description"]);
 my @commandsFields=(["source","status","gameState"],["directLevel","voteLevel"]);
 
@@ -387,7 +387,6 @@ sub getUserAccessLevel {
   my ($self,$name,$p_user)=@_;
   my $p_userData={name => $name,
                   country => $p_user->{country},
-                  cpu => $p_user->{cpu},
                   rank => $p_user->{status}->{rank},
                   access => $p_user->{status}->{access},
                   bot => $p_user->{status}->{bot}};

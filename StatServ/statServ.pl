@@ -31,7 +31,7 @@ use SimpleLog;
 use StatServConf;
 use SpringLobbyInterface;
 
-my $statServVer='0.3';
+my $statServVer='0.4';
 
 my $win=$^O eq 'MSWin32' ? 1 : 0;
 
@@ -1171,7 +1171,7 @@ sub cbLobbyConnect {
 
   my $localLanIp=$conf{localLanIp};
   $localLanIp=getLocalLanIp() unless($localLanIp);
-  queueLobbyCommand(["LOGIN",$conf{lobbyLogin},$lobby->marshallPasswd($conf{lobbyPassword}),getCpuSpeed(),$localLanIp,"StatServ v$statServVer"],
+  queueLobbyCommand(["LOGIN",$conf{lobbyLogin},$lobby->marshallPasswd($conf{lobbyPassword}),getCpuSpeed(),$localLanIp,"StatServ v$statServVer",0,'l t sp cl'],
                     {ACCEPTED => \&cbLoginAccepted,
                      DENIED => \&cbLoginDenied},
                     \&cbLoginTimeout);
@@ -1314,10 +1314,15 @@ sub cbSaidPrivate {
 }
 
 sub cbChannelTopic {
-  my (undef,$chan,$user,$time,$topic)=@_;
-  logMsg("channel_$chan","* Topic is '$topic' (set by $user)") if($conf{logChanChat});
+  my (undef,$chan,$user,$topic)=@_;
+  if($conf{logChanChat}) {
+    if(defined $topic && $topic ne '') {
+      logMsg("channel_$chan","* Topic is '$topic' (set by $user)");
+    }else{
+      logMsg("channel_$chan","* No topic is set");
+    }
+  }
 }
-
 
 sub cbAddUser {
   my (undef,$user)=@_;
